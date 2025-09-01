@@ -1,3 +1,4 @@
+
 import mongoose from "mongoose";
 
 const MAX_RETRIES = 3;
@@ -31,7 +32,7 @@ class DatabaseConnection {
       return; // Already connected
     }
 
-    if (!process.env.MONGO_URI) {
+    if (!process.env.MONGODB_URI) {
       throw new Error("MongoDB URI is not defined in environment variables");
     }
 
@@ -47,7 +48,7 @@ class DatabaseConnection {
         mongoose.set("debug", true);
       }
 
-      await mongoose.connect(process.env.MONGO_URI, options);
+      await mongoose.connect(process.env.MONGODB_URI, options);
       this.retryCount = 0;
     } catch (error) {
       console.error("Failed to connect to MongoDB:", error.message);
