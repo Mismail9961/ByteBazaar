@@ -24,6 +24,6 @@
     ".next/types/**/*.ts",
     "**/*.ts",
     "**/*.tsx"
-  ],
+, "app/api/user/data/route.js", "models/User.js"  ],
   "exclude": ["node_modules"]
 }
