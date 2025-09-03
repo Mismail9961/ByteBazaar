@@ -1,7 +1,6 @@
 "use client";
-import { productsDummyData, userDummyData } from "@/assets/assets";
-import { useUser } from "@clerk/nextjs";
-import { useAuth } from "@clerk/nextjs";
+import { productsDummyData } from "@/assets/assets";
+import { useAuth, useUser } from "@clerk/nextjs";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { createContext, useContext, useEffect, useState } from "react";
@@ -16,49 +15,44 @@ export const useAppContext = () => {
 export const AppContextProvider = (props) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY;
   const router = useRouter();
-  const { user } = useUser();
-  const { getToken } = useAuth();
+  const { user } = useUser();        // ✅ call the hook
+  const { getToken } = useAuth();    // ✅ call the hook
 
   const [products, setProducts] = useState([]);
   const [userData, setUserData] = useState(null);
   const [isSeller, setIsSeller] = useState(false);
   const [cartItems, setCartItems] = useState({});
 
-  // Fetch products (dummy for now)
   const fetchProductData = async () => {
     setProducts(productsDummyData);
   };
 
-  // Fetch user data from API
   const fetchUserData = async () => {
     try {
       if (user?.publicMetadata?.role === "seller") {
         setIsSeller(true);
-
-        const token = await getToken();
-
-        const res = await axios.get("/api/user/data", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const data = res.data; // ✅ Correctly access response body
-
-        if (data.success) {
-          setUserData(data.user);
-          setCartItems(data.user.cartItems || {}); // ✅ fallback in case it's null
-        } else {
-          toast.error(data.message || "Failed to fetch user data");
-        }
       } else {
         setIsSeller(false);
-        setUserData(userDummyData); // fallback for non-sellers
+      }
+
+      const token = await getToken();
+      if (!token) return; // user not authenticated
+
+      const { data } = await axios.get("/api/user/data", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (data.success) {
+        setUserData(data.user);
+        setCartItems(data.user.cartItems || {});
+      } else {
+        toast.error(data.message);
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message);
+      toast.error(error.message);
     }
   };
 
-  // Add item to cart
   const addToCart = async (itemId) => {
     let cartData = structuredClone(cartItems);
     if (cartData[itemId]) {
@@ -69,7 +63,6 @@ export const AppContextProvider = (props) => {
     setCartItems(cartData);
   };
 
-  // Update cart item quantity
   const updateCartQuantity = async (itemId, quantity) => {
     let cartData = structuredClone(cartItems);
     if (quantity === 0) {
@@ -80,37 +73,25 @@ export const AppContextProvider = (props) => {
     setCartItems(cartData);
   };
 
-  // Count total items in cart
   const getCartCount = () => {
-    let totalCount = 0;
-    for (const items in cartItems) {
-      if (cartItems[items] > 0) {
-        totalCount += cartItems[items];
-      }
-    }
-    return totalCount;
+    return Object.values(cartItems).reduce((acc, qty) => acc + qty, 0);
   };
 
-  // Calculate total cart amount
   const getCartAmount = () => {
     let totalAmount = 0;
-    for (const items in cartItems) {
-      if (cartItems[items] > 0) {
-        let itemInfo = products.find((product) => product._id === items);
-        if (itemInfo) {
-          totalAmount += itemInfo.offerPrice * cartItems[items];
-        }
+    for (const itemId in cartItems) {
+      let itemInfo = products.find((product) => product._id === itemId);
+      if (itemInfo && cartItems[itemId] > 0) {
+        totalAmount += itemInfo.offerPrice * cartItems[itemId];
       }
     }
     return Math.floor(totalAmount * 100) / 100;
   };
 
-  // Initial fetch for products
   useEffect(() => {
     fetchProductData();
   }, []);
 
-  // Fetch user data when Clerk user changes
   useEffect(() => {
     if (user) {
       fetchUserData();
@@ -118,8 +99,8 @@ export const AppContextProvider = (props) => {
   }, [user]);
 
   const value = {
-    getToken,
     user,
+    getToken,
     currency,
     router,
     isSeller,
@@ -137,6 +118,8 @@ export const AppContextProvider = (props) => {
   };
 
   return (
-    <AppContext.Provider value={value}>{props.children}</AppContext.Provider>
+    <AppContext.Provider value={value}>
+      {props.children}
+    </AppContext.Provider>
   );
 };

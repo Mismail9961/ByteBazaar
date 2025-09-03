@@ -5,11 +5,12 @@ const userSchema = new mongoose.Schema(
     _id: { type: String, required: true }, // Clerk user ID
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    imageUrl: { type: String, required:true }, // safer than required:true
-    cartItem: { type: Object, default: {} },
+    imageUrl: { type: String, required: false, default: "" }, // fallback if Clerk didn’t send
+    cartItem: { type: Object, default: {} }, // singular, matches your DB
   },
   { minimize: false }
 );
+
 
 const User = mongoose.models.User || mongoose.model("User", userSchema);
 

@@ -12,13 +12,15 @@ export const syncUserCreation = inngest.createFunction(
     try {
       console.log("📩 User Created Event:", event.data);
 
-      const { id, first_name, last_name, email_addresses, image_url } = event.data;
+      const { id, first_name, last_name, email_addresses, image_url } =
+        event.data;
 
       const userData = {
         _id: id,
         email: email_addresses?.[0]?.email_address ?? null,
-        name: [first_name, last_name].filter(Boolean).join(" ") || "Unnamed User",
-        image_url,
+        name:
+          [first_name, last_name].filter(Boolean).join(" ") || "Unnamed User",
+        imageUrl: image_url, // <-- match schema
       };
 
       await connectDB();
@@ -45,12 +47,14 @@ export const syncUserUpdation = inngest.createFunction(
     try {
       console.log("📩 User Updated Event:", event.data);
 
-      const { id, first_name, last_name, email_addresses, image_url } = event.data;
+      const { id, first_name, last_name, email_addresses, image_url } =
+        event.data;
 
       const userData = {
         email: email_addresses?.[0]?.email_address ?? null,
-        name: [first_name, last_name].filter(Boolean).join(" ") || "Unnamed User",
-        image_url,
+        name:
+          [first_name, last_name].filter(Boolean).join(" ") || "Unnamed User",
+  imageUrl: image_url, // <-- match schema
       };
 
       await connectDB();

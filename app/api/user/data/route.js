@@ -1,37 +1,35 @@
-import { auth } from "@clerk/nextjs/server";
-import connectDB from "@/config/db";
+import { getAuth } from "@clerk/nextjs/server";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
+import connectDB from "@/config/db";
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const { userId } = auth(); // no need for await, auth() is sync in app router
-
+    const {userId} = await getAuth(request)
+    
     if (!userId) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({success:false,message:"Unauthorized"})
+    }
+    
+    await connectDB()
+    let user = await User.findById(userId)
+
+    if(!user){
+      console.log("🔄 Creating temporary user for:", userId)
+      user = new User({
+        _id: userId,
+        name: "Loading...",
+        email: `temp-${userId}@placeholder.local`, // ✅ Temporary email
+        imageUrl: ""
+      })
+      
+      await user.save()
+      console.log("✅ Temporary user created, webhook will update:", userId)
     }
 
-    await connectDB();
-
-    // Your schema uses _id for Clerk userId
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "User Not Found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({ success: true, user });
+    return NextResponse.json({success:true,user})
   } catch (error) {
-    console.error("❌ Error in GET /api/user/data:", error);
-    return NextResponse.json(
-      { success: false, message: error.message },
-      { status: 500 }
-    );
+    console.error("API Error:", error)
+    return NextResponse.json({success:false,message:error.message})
   }
 }
