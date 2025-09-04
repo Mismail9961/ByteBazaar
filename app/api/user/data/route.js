@@ -1,11 +1,11 @@
-import { getAuth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import User from "@/models/User";
 import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 
 export async function GET(request) {
   try {
-    const {userId} = await getAuth(request)
+    const { userId } = await auth()
     
     if (!userId) {
       return NextResponse.json({success:false,message:"Unauthorized"})
@@ -15,16 +15,33 @@ export async function GET(request) {
     let user = await User.findById(userId)
 
     if(!user){
-      console.log("🔄 Creating temporary user for:", userId)
-      user = new User({
-        _id: userId,
-        name: "Loading...",
-        email: `temp-${userId}@placeholder.local`, // ✅ Temporary email
-        imageUrl: ""
-      })
+      console.log("🔄 Fetching current user from Clerk for:", userId)
       
-      await user.save()
-      console.log("✅ Temporary user created, webhook will update:", userId)
+      try {
+        // Get current user directly
+        const clerkUser = await currentUser()
+        
+        if (!clerkUser) {
+          throw new Error("No current user found")
+        }
+        
+        user = new User({
+          _id: userId,
+          name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || "Unnamed User",
+          email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
+          imageUrl: clerkUser.imageUrl || ""
+        })
+        
+        await user.save()
+        console.log("✅ Real user data created from currentUser:", userId)
+        
+      } catch (clerkError) {
+        console.error("❌ currentUser error:", clerkError.message)
+        return NextResponse.json({
+          success: false, 
+          message: `Could not get current user: ${clerkError.message}`
+        })
+      }
     }
 
     return NextResponse.json({success:true,user})
