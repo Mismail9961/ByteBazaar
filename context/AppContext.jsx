@@ -15,8 +15,8 @@ export const useAppContext = () => {
 export const AppContextProvider = (props) => {
   const currency = process.env.NEXT_PUBLIC_CURRENCY;
   const router = useRouter();
-  const { user } = useUser();        // ✅ call the hook
-  const { getToken } = useAuth();    // ✅ call the hook
+  const { user } = useUser();
+  const { getToken } = useAuth();
 
   const [products, setProducts] = useState([]);
   const [userData, setUserData] = useState(null);
