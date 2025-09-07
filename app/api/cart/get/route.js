@@ -5,6 +5,7 @@ import { getAuth } from "@clerk/nextjs/server";
 
 export async function GET(request) {
   try {
+    // Clerk authentication
     const { userId } = getAuth(request);
 
     if (!userId) {
@@ -14,7 +15,10 @@ export async function GET(request) {
       );
     }
 
+    // Connect DB
     await connectDB();
+
+    // Find user by Clerk userId
     const user = await User.findById(userId);
 
     if (!user) {
@@ -24,6 +28,7 @@ export async function GET(request) {
       );
     }
 
+    // Return cart items
     return NextResponse.json({
       success: true,
       cartItems: user.cartItems || [],
@@ -31,7 +36,7 @@ export async function GET(request) {
   } catch (error) {
     console.error("Error fetching cart:", error);
     return NextResponse.json(
-      { success: false, message: error.message },
+      { success: false, message: "Internal Server Error" },
       { status: 500 }
     );
   }
