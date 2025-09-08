@@ -1,4 +1,3 @@
-// app/api/product/home/route.js
 import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 import Product from "@/models/Product";
@@ -7,7 +6,13 @@ export async function GET() {
   try {
     await connectDB();
 
-    // ✅ Fetch latest 12 products based on createdAt
+    // 🔧 Ensure all old products without createdAt get a timestamp
+    await Product.updateMany(
+      { createdAt: { $exists: false } },
+      { $set: { createdAt: new Date(), updatedAt: new Date() } }
+    );
+
+    // ✅ Fetch latest 12 products
     const products = await Product.find({})
       .sort({ createdAt: -1 })
       .limit(12);
