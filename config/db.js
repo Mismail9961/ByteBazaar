@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 const MAX_RETRIES = 3;
@@ -12,7 +11,9 @@ class DatabaseConnection {
     mongoose.set("strictQuery", true);
 
     mongoose.connection.on("connected", () => {
-      console.log("✅ MongoDB connected successfully");
+      console.log(
+        `✅ MongoDB connected: ${mongoose.connection.host}/${mongoose.connection.name}`
+      );
       this.isConnected = true;
     });
 
