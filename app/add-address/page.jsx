@@ -1,110 +1,179 @@
-'use client'
+"use client";
 import { assets } from "@/assets/assets";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Image from "next/image";
 import { useState } from "react";
-import { useAppContext } from "@/context/AppContext"
+import { useAppContext } from "@/context/AppContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 const AddAddress = () => {
+  const { getToken, router } = useAppContext();
 
-    const {getToken,router} = useAppContext()
+  const [address, setAddress] = useState({
+    fullName: "",
+    phoneNumber: "",
+    pinCode: "",
+    area: "",
+    city: "",
+    state: "",
+  });
 
-    const [address, setAddress] = useState({
-        fullName: '',
-        phoneNumber: '',
-        pincode: '',
-        area: '',
-        city: '',
-        state: '',
-    })
+  const onSubmitHandler = async (e) => {
+    e.preventDefault();
+    try {
+      const token = await getToken();
+      if (!token) {
+        toast.error("Not authenticated");
+        return;
+      }
 
-    const onSubmitHandler = async (e) => {
-        e.preventDefault();
-        try {
-            const token = getToken()
-            const {data} = await axios.post('/api/user/add-address',{address},{headers:{Authorization:`Bearer ${token}`}})
-            if (data.success) {
-                toast.success(data.message)
-                router.push('/cart')
-            } else {
-                toast.error(data.message)
-            }
-        } catch (error) {
-            toast.error(error.message)
-        }
+      const { data } = await axios.post(
+        "/api/user/add-address",
+        { address },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (data.success) {
+        toast.success(data.message);
+        router.push("/cart");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || error.message);
     }
+  };
 
-    return (
-        <>
-            <Navbar />
-            <div className="px-6 md:px-16 lg:px-32 py-16 flex flex-col md:flex-row justify-between">
-                <form onSubmit={onSubmitHandler} className="w-full">
-                    <p className="text-2xl md:text-3xl text-gray-500">
-                        Add Shipping <span className="font-semibold text-orange-600">Address</span>
-                    </p>
-                    <div className="space-y-3 max-w-sm mt-10">
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Full name"
-                            onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                            value={address.fullName}
-                        />
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Phone number"
-                            onChange={(e) => setAddress({ ...address, phoneNumber: e.target.value })}
-                            value={address.phoneNumber}
-                        />
-                        <input
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                            type="text"
-                            placeholder="Pin code"
-                            onChange={(e) => setAddress({ ...address, pincode: e.target.value })}
-                            value={address.pincode}
-                        />
-                        <textarea
-                            className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500 resize-none"
-                            type="text"
-                            rows={4}
-                            placeholder="Address (Area and Street)"
-                            onChange={(e) => setAddress({ ...address, area: e.target.value })}
-                            value={address.area}
-                        ></textarea>
-                        <div className="flex space-x-3">
-                            <input
-                                className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                                type="text"
-                                placeholder="City/District/Town"
-                                onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                                value={address.city}
-                            />
-                            <input
-                                className="px-2 py-2.5 focus:border-orange-500 transition border border-gray-500/30 rounded outline-none w-full text-gray-500"
-                                type="text"
-                                placeholder="State"
-                                onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                                value={address.state}
-                            />
-                        </div>
-                    </div>
-                    <button type="submit" className="max-w-sm w-full mt-6 bg-orange-600 text-white py-3 hover:bg-orange-700 uppercase">
-                        Save address
-                    </button>
-                </form>
-                <Image
-                    className="md:mr-16 mt-16 md:mt-0"
-                    src={assets.my_location_image}
-                    alt="my_location_image"
-                />
+  return (
+    <>
+      <Navbar />
+      <div className="relative min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-100 flex items-center justify-center px-6 md:px-16 py-20">
+        {/* Animated Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="w-full max-w-6xl rounded-2xl shadow-2xl bg-white/80 backdrop-blur-md p-10 flex flex-col md:flex-row gap-12"
+        >
+          {/* Form Section */}
+          <motion.form
+            onSubmit={onSubmitHandler}
+            className="flex-1 space-y-6"
+            initial={{ opacity: 0, x: -30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <h2 className="text-3xl font-bold text-gray-800">
+              Add <span className="text-orange-600">Shipping Address</span>
+            </h2>
+            <p className="text-gray-500 text-sm">
+              Please fill out the form below to save your delivery details.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[
+                { id: "fullName", label: "Full name", value: address.fullName },
+                {
+                  id: "phoneNumber",
+                  label: "Phone number",
+                  value: address.phoneNumber,
+                },
+                { id: "pinCode", label: "Pin code", value: address.pinCode },
+                { id: "city", label: "City/District/Town", value: address.city },
+              ].map((field) => (
+                <div className="relative" key={field.id}>
+                  <input
+                    type="text"
+                    id={field.id}
+                    value={field.value}
+                    onChange={(e) =>
+                      setAddress({ ...address, [field.id]: e.target.value })
+                    }
+                    className="peer w-full border border-gray-300 rounded-xl px-3 pt-5 pb-2 text-gray-700 placeholder-transparent focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    placeholder={field.label}
+                  />
+                  <label
+                    htmlFor={field.id}
+                    className="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-orange-600"
+                  >
+                    {field.label}
+                  </label>
+                </div>
+              ))}
             </div>
-            <Footer />
-        </>
-    );
+
+            {/* State */}
+            <div className="relative">
+              <input
+                type="text"
+                id="state"
+                value={address.state}
+                onChange={(e) =>
+                  setAddress({ ...address, state: e.target.value })
+                }
+                className="peer w-full border border-gray-300 rounded-xl px-3 pt-5 pb-2 text-gray-700 placeholder-transparent focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                placeholder="State"
+              />
+              <label
+                htmlFor="state"
+                className="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-orange-600"
+              >
+                State
+              </label>
+            </div>
+
+            {/* Area */}
+            <div className="relative">
+              <textarea
+                id="area"
+                rows={4}
+                value={address.area}
+                onChange={(e) =>
+                  setAddress({ ...address, area: e.target.value })
+                }
+                className="peer w-full border border-gray-300 rounded-xl px-3 pt-5 pb-2 text-gray-700 placeholder-transparent focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none resize-none"
+                placeholder="Area"
+              ></textarea>
+              <label
+                htmlFor="area"
+                className="absolute left-3 top-2 text-gray-400 text-sm transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-gray-500 peer-placeholder-shown:text-base peer-focus:top-2 peer-focus:text-sm peer-focus:text-orange-600"
+              >
+                Address (Area & Street)
+              </label>
+            </div>
+
+            {/* Animated Submit button */}
+            <motion.button
+              type="submit"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-full py-3 bg-orange-600 text-white rounded-xl font-semibold tracking-wide hover:bg-orange-700 transition"
+            >
+              Save Address
+            </motion.button>
+          </motion.form>
+
+          {/* Side Illustration */}
+          <motion.div
+            className="flex-1 flex items-center justify-center"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            <Image
+              src={assets.my_location_image}
+              alt="Location Illustration"
+              className="w-80 h-auto drop-shadow-xl"
+            />
+          </motion.div>
+        </motion.div>
+      </div>
+      <Footer />
+    </>
+  );
 };
 
 export default AddAddress;
