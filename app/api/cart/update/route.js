@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   try {
     const { userId } = getAuth(request);
-    const cartData = await request.json();
+    const {cartData} = await request.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -17,13 +17,6 @@ export async function POST(request) {
 
     await connectDB();
     const user = await User.findById(userId);
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
-    }
 
     user.cartItems = cartData;
     await user.save();

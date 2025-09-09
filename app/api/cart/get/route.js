@@ -21,12 +21,7 @@ export async function GET(request) {
     // Find user by Clerk userId
     const user = await User.findById(userId);
 
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
-    }
+    const {cartItems} = user
 
     // Return cart items
     return NextResponse.json({
