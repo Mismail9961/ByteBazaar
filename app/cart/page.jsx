@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React from "react";
 import { assets } from "@/assets/assets";
 import OrderSummary from "@/components/OrderSummary";
@@ -8,18 +8,25 @@ import { useAppContext } from "@/context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Cart = () => {
-  const { products, router, cartItems, addToCart, updateCartQuantity, getCartCount } =
-    useAppContext();
+  const {
+    products,
+    router,
+    cartItems,
+    addToCart,
+    updateCartQuantity,
+    getCartCount,
+  } = useAppContext();
 
   return (
     <>
       <Navbar />
       <div className="flex flex-col md:flex-row gap-10 px-6 md:px-16 lg:px-32 pt-14 mb-20">
+        {/* Left Side - Cart Items */}
         <div className="flex-1">
           {/* Header */}
           <div className="flex items-center justify-between mb-8 border-b border-gray-200 pb-6">
             <h2 className="text-3xl font-bold text-gray-800">
-              Your <span className="text-orange-600">Cart</span>
+              Your <span className="text-[#4364EE]">Cart</span>
             </h2>
             <span className="text-lg md:text-xl text-gray-500/80">
               {getCartCount()} Items
@@ -55,12 +62,14 @@ const Cart = () => {
 
                     {/* Product Info */}
                     <div className="flex-1">
-                      <p className="font-medium text-gray-800">{product.name}</p>
+                      <p className="font-medium text-gray-800">
+                        {product.name}
+                      </p>
                       <p className="text-sm text-gray-500">
                         ${product.offerPrice}
                       </p>
                       <button
-                        className="text-xs text-orange-600 mt-1 hover:underline"
+                        className="text-xs text-[#4364EE] mt-1 hover:underline"
                         onClick={() => updateCartQuantity(product._id, 0)}
                       >
                         Remove
@@ -85,7 +94,10 @@ const Cart = () => {
                         type="number"
                         value={cartItems[itemId]}
                         onChange={(e) =>
-                          updateCartQuantity(product._id, Number(e.target.value))
+                          updateCartQuantity(
+                            product._id,
+                            Number(e.target.value)
+                          )
                         }
                         className="w-12 text-center border rounded-md py-1"
                       />
@@ -114,7 +126,7 @@ const Cart = () => {
           {/* Continue Shopping */}
           <button
             onClick={() => router.push("/all-products")}
-            className="group flex items-center mt-8 gap-2 text-orange-600 font-medium hover:underline"
+            className="group flex items-center mt-8 gap-2 text-[#4364EE] font-medium hover:underline"
           >
             <Image
               className="group-hover:-translate-x-1 transition"
@@ -125,8 +137,8 @@ const Cart = () => {
           </button>
         </div>
 
-        {/* Order Summary */}
-        <OrderSummary />
+        {/* Right Side - Order Summary */}
+        <OrderSummary accentColor="#4364EE" />
       </div>
     </>
   );

@@ -3,19 +3,40 @@ import ProductCard from "./ProductCard";
 import { useAppContext } from "@/context/AppContext";
 
 const HomeProducts = () => {
-
-  const { products, router } = useAppContext()
+  const { products, router } = useAppContext();
 
   return (
-    <div className="flex flex-col items-center pt-14">
-      <p className="text-2xl font-medium text-left w-full">Popular products</p>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 flex-col items-center gap-6 mt-6 pb-14 w-full">
-        {products.map((product, index) => <ProductCard key={index} product={product} />)}
+    <section className="px-6 md:px-12 lg:px-20 py-14 bg-gradient-to-b">
+      {/* Header */}
+      <div className="flex items-center justify-between w-full mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+          Popular Products
+        </h2>
+        <button
+          onClick={() => router.push("/all-products")}
+          className="hidden md:inline-block px-6 py-2 text-sm font-medium text-indigo-600 border border-indigo-600 rounded-full hover:bg-indigo-600 hover:text-white transition-all"
+        >
+          View All
+        </button>
       </div>
-      <button onClick={() => { router.push('/all-products') }} className="px-12 py-2.5 border rounded text-gray-500/70 hover:bg-slate-50/90 transition">
-        See more
-      </button>
-    </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+        {products.slice(0, 10).map((product, index) => (
+          <ProductCard key={index} product={product} />
+        ))}
+      </div>
+
+      {/* Mobile Button */}
+      <div className="flex justify-center mt-10 md:hidden">
+        <button
+          onClick={() => router.push("/all-products")}
+          className="px-10 py-2.5 text-sm font-medium border border-gray-400 text-gray-700 rounded-full hover:bg-gray-100 transition"
+        >
+          See More
+        </button>
+      </div>
+    </section>
   );
 };
 

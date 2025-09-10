@@ -4,35 +4,48 @@ import Image from "next/image";
 
 const Banner = () => {
   return (
-    <div className="flex flex-col md:flex-row items-center justify-between md:pl-20 py-14 md:py-0 bg-[#E6E9F2] my-16 rounded-xl overflow-hidden">
-      <Image
-        className="max-w-56"
-        src={assets.jbl_soundbox_image}
-        alt="jbl_soundbox_image"
-      />
-      <div className="flex flex-col items-center justify-center text-center space-y-2 px-4 md:px-0">
-        <h2 className="text-2xl md:text-3xl font-semibold max-w-[290px]">
-          Level Up Your Gaming Experience
+    <section className="relative flex flex-col md:flex-row items-center justify-between bg-gradient-to-r from-[#E6E9F2] to-[#f8f9fb] my-16 rounded-2xl overflow-hidden shadow-md">
+      {/* Left Product Image */}
+      <div className="flex-1 flex justify-center md:justify-start md:pl-12 py-10 md:py-16">
+        <Image
+          className="w-48 md:w-56 lg:w-64 object-contain hover:scale-105 transition duration-500"
+          src={assets.jbl_soundbox_image}
+          alt="jbl_soundbox_image"
+        />
+      </div>
+
+      {/* Text Content */}
+      <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left px-6 md:px-0 space-y-4">
+        <h2 className="text-2xl md:text-4xl font-bold text-gray-900 leading-snug max-w-lg">
+          Level Up Your <span className="text-[#5F65F0]">Gaming</span> Experience
         </h2>
-        <p className="max-w-[343px] font-medium text-gray-800/60">
-          From immersive sound to precise controls—everything you need to win
+        <p className="max-w-md font-medium text-gray-600">
+          From immersive sound to precise controls — everything you need to win.
         </p>
-        <button className="group flex items-center justify-center gap-1 px-12 py-2.5 bg-orange-600 rounded text-white">
+        <button className="group flex items-center gap-2 px-10 py-3 bg-[#5F65F0] hover:bg-[#4c52d1] rounded-full text-white font-medium shadow-lg hover:shadow-xl transform hover:scale-105 transition duration-300">
           Buy now
-          <Image className="group-hover:translate-x-1 transition" src={assets.arrow_icon_white} alt="arrow_icon_white" />
+          <Image
+            className="w-4 h-4 group-hover:translate-x-1 transition"
+            src={assets.arrow_icon_white}
+            alt="arrow_icon_white"
+          />
         </button>
       </div>
-      <Image
-        className="hidden md:block max-w-80"
-        src={assets.md_controller_image}
-        alt="md_controller_image"
-      />
-      <Image
-        className="md:hidden"
-        src={assets.sm_controller_image}
-        alt="sm_controller_image"
-      />
-    </div>
+
+      {/* Right Controller Image */}
+      <div className="flex-1 flex justify-center md:justify-end">
+        <Image
+          className="hidden md:block w-64 lg:w-80 object-contain hover:scale-105 transition duration-500"
+          src={assets.md_controller_image}
+          alt="md_controller_image"
+        />
+        <Image
+          className="md:hidden w-44 object-contain mt-6"
+          src={assets.sm_controller_image}
+          alt="sm_controller_image"
+        />
+      </div>
+    </section>
   );
 };
 
