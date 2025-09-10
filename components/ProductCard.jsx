@@ -12,22 +12,22 @@ const ProductCard = ({ product }) => {
         router.push("/product/" + product._id);
         scrollTo(0, 0);
       }}
-      className="group relative flex flex-col bg-white rounded-2xl border border-gray-200 hover:border-[#5F65F0]/40 transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer overflow-hidden"
+      className="group relative flex flex-col bg-white rounded-xl border border-gray-200 hover:border-[#5F65F0]/40 transition-all duration-300 shadow-sm hover:shadow-lg cursor-pointer overflow-hidden w-full max-w-sm"
     >
       {/* Product Image */}
-      <div className="relative w-full h-60 flex items-center justify-center bg-gray-50">
+      <div className="relative w-full aspect-[4/3] flex items-center justify-center bg-gray-50">
         <Image
-          src={product.image[0]}
-          alt={product.name}
-          width={700}
-          height={700}
-          className="object-contain w-4/5 h-4/5 transform transition-transform duration-500 group-hover:scale-105"
+          src={product.image?.[0] || "/placeholder.png"}
+          alt={product.name || "Product"}
+          width={600}
+          height={400}
+          className="object-contain w-3/4 h-3/4 transform transition-transform duration-500 group-hover:scale-105"
         />
 
         {/* Wishlist Button */}
         <button
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 right-4 bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition"
+          className="absolute top-3 right-3 bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition"
         >
           <Image
             className="h-4 w-4"
@@ -38,14 +38,14 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Product Info */}
-      <div className="flex flex-col p-5 space-y-2">
+      <div className="flex flex-col p-3 sm:p-4 space-y-1">
         {/* Title */}
-        <h3 className="text-gray-900 font-semibold text-base md:text-lg line-clamp-1">
+        <h3 className="text-gray-900 font-semibold text-sm sm:text-base line-clamp-1">
           {product.name}
         </h3>
 
         {/* Description */}
-        <p className="text-gray-500 text-sm line-clamp-2 hidden sm:block">
+        <p className="text-gray-500 text-xs sm:text-sm line-clamp-1 hidden sm:block">
           {product.description}
         </p>
 
@@ -69,14 +69,14 @@ const ProductCard = ({ product }) => {
         </div>
 
         {/* Price + Button */}
-        <div className="flex items-center justify-between pt-3">
-          <p className="text-lg font-bold text-gray-900">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
+          <p className="text-base sm:text-lg font-bold text-gray-900">
             {currency}
             {product.offerPrice}
           </p>
           <button
             onClick={(e) => e.stopPropagation()}
-            className="hidden sm:inline-flex px-5 py-2 bg-[#5F65F0] hover:bg-[#4c52d1] text-white text-sm font-medium rounded-full shadow-sm hover:shadow-md transition"
+            className="px-4 py-1.5 bg-[#5F65F0] hover:bg-[#4c52d1] text-white text-xs sm:text-sm font-medium rounded-full shadow-sm hover:shadow-md transition w-full sm:w-auto"
           >
             Buy Now
           </button>
@@ -84,7 +84,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Accent Border Glow */}
-      <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-[#5F65F0]/20 transition duration-500"></div>
+      <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-[#5F65F0]/20 transition duration-500"></div>
     </div>
   );
 };
