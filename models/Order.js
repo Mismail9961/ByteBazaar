@@ -2,8 +2,7 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
+    type: String,   // 🔹 Store Clerk's userId as string
     required: true 
   },
   items: [
@@ -18,8 +17,7 @@ const orderSchema = new mongoose.Schema({
   ],
   amount: { type: Number, required: true },
   address: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "Address", 
+    type: String,   // 🔹 Can keep this as string if you’re not using Address collection
     required: true 
   },
   status: { type: String, required: true, default: "Order Placed" },
