@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema({
   userId: { 
-    type: String,   // 🔹 Store Clerk's userId as string
+    type: String,   // Clerk userId
     required: true 
   },
   items: [
@@ -16,9 +16,13 @@ const orderSchema = new mongoose.Schema({
     }
   ],
   amount: { type: Number, required: true },
-  address: { 
-    type: String,   // 🔹 Can keep this as string if you’re not using Address collection
-    required: true 
+  address: {
+    fullName: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String },
+    postalCode: { type: String, required: true },
+    country: { type: String, required: true }
   },
   status: { type: String, required: true, default: "Order Placed" },
   date: { type: Date, default: Date.now },

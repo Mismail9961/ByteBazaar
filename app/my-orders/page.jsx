@@ -10,7 +10,6 @@ import axios from "axios";
 
 const MyOrders = () => {
   const { currency } = useAppContext();
-
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +93,11 @@ const MyOrders = () => {
                     <p className="font-semibold text-gray-900 mb-1">
                       Delivery Address
                     </p>
-                    <p>{order.address}</p>
+                    <p>
+                      {order.address?.fullName}, {order.address?.street},{" "}
+                      {order.address?.city}, {order.address?.state}{" "}
+                      {order.address?.postalCode}, {order.address?.country}
+                    </p>
                   </div>
 
                   {/* Amount & Status */}
