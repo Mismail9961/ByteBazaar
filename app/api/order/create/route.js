@@ -1,7 +1,6 @@
 import Product from "@/models/Product";
 import User from "@/models/User";
 import Address from "@/models/Address";
-import Order from "@/models/Order"; // Add this import
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { inngest } from "@/config/inngest";
@@ -99,46 +98,7 @@ export async function POST(request) {
 
     console.log("💰 Calculated total amount:", totalAmount);
 
-    // 💾 SAVE ORDER DIRECTLY TO DATABASE
-    try {
-      const newOrder = new Order({
-        userId: userId,
-        address: {
-          fullName: addressData.fullName,
-          phoneNumber: addressData.phoneNumber,
-          pinCode: addressData.pinCode,
-          area: addressData.area,
-          city: addressData.city,
-          state: addressData.state,
-        },
-        items: validItems.map(item => ({
-          product: item.product,
-          quantity: item.quantity
-        })),
-        amount: totalAmount,
-        status: "Order Placed",
-        date: new Date(),
-      });
-
-      const savedOrder = await newOrder.save();
-      console.log("✅ Order saved successfully:", savedOrder._id);
-      console.log("📦 Saved order details:", {
-        id: savedOrder._id,
-        userId: savedOrder.userId,
-        itemsCount: savedOrder.items.length,
-        amount: savedOrder.amount,
-        status: savedOrder.status
-      });
-
-    } catch (saveError) {
-      console.error("❌ Error saving order directly:", saveError);
-      return NextResponse.json({ 
-        success: false, 
-        message: "Failed to save order: " + saveError.message 
-      }, { status: 500 });
-    }
-
-    // 📩 Also send to Inngest (optional, for additional processing)
+    // 📩 Send to Inngest for order creation (ONLY method for creating orders)
     try {
       await inngest.send({
         name: "order/created",
@@ -155,11 +115,16 @@ export async function POST(request) {
           items: validItems,
           amount: totalAmount,
           date: Date.now(),
+          status: "Order Placed"
         },
       });
       console.log("✅ Inngest event sent successfully");
     } catch (inngestError) {
-      console.warn("⚠️ Inngest event failed (but order was saved):", inngestError.message);
+      console.error("❌ Inngest event failed:", inngestError.message);
+      return NextResponse.json({ 
+        success: false, 
+        message: "Failed to process order: " + inngestError.message 
+      }, { status: 500 });
     }
 
     // 🛒 Clear user cart (best-effort)

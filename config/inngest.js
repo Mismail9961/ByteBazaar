@@ -102,29 +102,48 @@ export const syncUserDeletion = inngest.createFunction(
   }
 );
 
-// Ingest Function to create user's order in database
+// Inngest Function to create user's order in database
 export const createUserOrder = inngest.createFunction(
   {
-    id:"create-user-order",
-    batchEvents:{
-      maxSize:5,
-      timeout:'5s'
+    id: "create-user-order",
+    batchEvents: {
+      maxSize: 5,
+      timeout: "5s"
     }
   },
-  {event:"order/created"},
-  async ({events}) => {
-    const orders = events.map((event) => {
-       return {
-          userId:event.data.userId,
-          items:event.data.items,
-          amount:event.data.amount,
-          address:event.data.address,
-          date:event.data.date
-       }
-    })
-    await connectDB()
-    await Order.insertMany(orders)
-
-    return { success:true,processed: orders.length };
+  { event: "order/created" },
+  async ({ events }) => {
+    try {
+      await connectDB();
+      
+      console.log("🔍 INNGEST: Processing", events.length, "order events");
+      
+      const orders = events.map((event) => {
+        return {
+          userId: event.data.userId,
+          items: event.data.items,
+          amount: event.data.amount,
+          address: event.data.address,
+          date: new Date(event.data.date),
+          status: event.data.status || "Order Placed"
+        };
+      });
+      
+      // Insert all orders at once
+      const insertedOrders = await Order.insertMany(orders);
+      
+      console.log("✅ INNGEST: Successfully created", insertedOrders.length, "orders");
+      console.log("📦 INNGEST: Order IDs:", insertedOrders.map(order => order._id));
+      
+      return { 
+        success: true, 
+        processed: orders.length,
+        orderIds: insertedOrders.map(order => order._id)
+      };
+      
+    } catch (error) {
+      console.error("❌ INNGEST: Error creating orders:", error);
+      throw new Error(`Failed to create orders: ${error.message}`);
+    }
   }
-)
+);
