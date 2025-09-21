@@ -1,5 +1,7 @@
 import Product from "@/models/Product";
 import User from "@/models/User";
+import Address from "@/models/Address";
+import Order from "@/models/Order"; // Add this import
 import { getAuth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { inngest } from "@/config/inngest";
@@ -17,10 +19,53 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // 🔎 Validate inputs
-    if (!address || typeof address !== "string" || address.trim().length === 0) {
-      return NextResponse.json({ success: false, message: "Invalid address" }, { status: 400 });
+    // Debug: Log the received data
+    console.log("📦 Received order data:", { address, items });
+    console.log("👤 User ID:", userId);
+
+    let addressData;
+
+    // Handle both address object and address ID
+    if (typeof address === "string") {
+      // Address is an ID, fetch the actual address
+      try {
+        addressData = await Address.findById(address);
+        if (!addressData) {
+          return NextResponse.json({ 
+            success: false, 
+            message: "Address not found" 
+          }, { status: 400 });
+        }
+        console.log("📍 Fetched address data:", addressData);
+      } catch (err) {
+        return NextResponse.json({ 
+          success: false, 
+          message: "Invalid address ID" 
+        }, { status: 400 });
+      }
+    } else if (typeof address === "object" && address !== null) {
+      // Address is already an object
+      addressData = address;
+    } else {
+      return NextResponse.json({ 
+        success: false, 
+        message: `Invalid address. Received: ${typeof address}` 
+      }, { status: 400 });
     }
+
+    // Validate required address fields
+    const requiredAddressFields = ['fullName', 'phoneNumber', 'pinCode', 'area', 'city', 'state'];
+    const missingFields = requiredAddressFields.filter(field => !addressData[field]);
+    
+    if (missingFields.length > 0) {
+      console.log("❌ Missing address fields:", missingFields);
+      return NextResponse.json({ 
+        success: false, 
+        message: `Missing address fields: ${missingFields.join(', ')}` 
+      }, { status: 400 });
+    }
+
+    // Validate items
     if (!Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ success: false, message: "No items in order" }, { status: 400 });
     }
@@ -52,17 +97,70 @@ export async function POST(request) {
 
     const totalAmount = subtotal + Math.round(subtotal * 0.02); // 2% fee
 
-    // 📩 Send order event to Inngest
-    await inngest.send({
-      name: "order/created",
-      data: {
-        userId,
-        address,
-        items: validItems,
+    console.log("💰 Calculated total amount:", totalAmount);
+
+    // 💾 SAVE ORDER DIRECTLY TO DATABASE
+    try {
+      const newOrder = new Order({
+        userId: userId,
+        address: {
+          fullName: addressData.fullName,
+          phoneNumber: addressData.phoneNumber,
+          pinCode: addressData.pinCode,
+          area: addressData.area,
+          city: addressData.city,
+          state: addressData.state,
+        },
+        items: validItems.map(item => ({
+          product: item.product,
+          quantity: item.quantity
+        })),
         amount: totalAmount,
-        date: Date.now(),
-      },
-    });
+        status: "Order Placed",
+        date: new Date(),
+      });
+
+      const savedOrder = await newOrder.save();
+      console.log("✅ Order saved successfully:", savedOrder._id);
+      console.log("📦 Saved order details:", {
+        id: savedOrder._id,
+        userId: savedOrder.userId,
+        itemsCount: savedOrder.items.length,
+        amount: savedOrder.amount,
+        status: savedOrder.status
+      });
+
+    } catch (saveError) {
+      console.error("❌ Error saving order directly:", saveError);
+      return NextResponse.json({ 
+        success: false, 
+        message: "Failed to save order: " + saveError.message 
+      }, { status: 500 });
+    }
+
+    // 📩 Also send to Inngest (optional, for additional processing)
+    try {
+      await inngest.send({
+        name: "order/created",
+        data: {
+          userId,
+          address: {
+            fullName: addressData.fullName,
+            phoneNumber: addressData.phoneNumber,
+            pinCode: addressData.pinCode,
+            area: addressData.area,
+            city: addressData.city,
+            state: addressData.state,
+          },
+          items: validItems,
+          amount: totalAmount,
+          date: Date.now(),
+        },
+      });
+      console.log("✅ Inngest event sent successfully");
+    } catch (inngestError) {
+      console.warn("⚠️ Inngest event failed (but order was saved):", inngestError.message);
+    }
 
     // 🛒 Clear user cart (best-effort)
     try {
@@ -70,6 +168,7 @@ export async function POST(request) {
       if (user) {
         user.cartItems = {};
         await user.save();
+        console.log("✅ Cart cleared successfully");
       }
     } catch (cartErr) {
       console.warn("⚠️ Failed to clear cart:", cartErr);
@@ -77,13 +176,13 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: "Order Placed",
+      message: "Order Placed Successfully",
       skippedProducts: productIds.filter(
         (id) => !products.find((p) => p._id.toString() === id.toString())
       ),
     });
   } catch (error) {
-    console.error("Order creation error:", error);
+    console.error("❌ Order creation error:", error);
     return NextResponse.json(
       { success: false, message: error.message || "Server error" },
       { status: 500 }

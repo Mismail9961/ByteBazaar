@@ -16,6 +16,7 @@ const MyOrders = () => {
   const fetchOrders = async () => {
     try {
       const res = await axios.get("/api/order/list");
+      console.log(res)
       if (res.data.success) {
         setOrders(res.data.orders);
       } else {
@@ -97,11 +98,39 @@ const MyOrders = () => {
                     <p className="font-semibold text-gray-900 mb-1">
                       Delivery Address
                     </p>
-                    <p className="leading-relaxed text-xs sm:text-sm">
-                      {order.address?.fullName}, {order.address?.street},{" "}
-                      {order.address?.city}, {order.address?.state}{" "}
-                      {order.address?.postalCode}, {order.address?.country}
-                    </p>
+                    {order.address && Object.keys(order.address).length > 0 ? (
+                      <div className="leading-relaxed text-xs sm:text-sm">
+                        {order.address.fullName && (
+                          <p className="font-medium">{order.address.fullName}</p>
+                        )}
+                        {order.address.phoneNumber && (
+                          <p>{order.address.phoneNumber}</p>
+                        )}
+                        {(order.address.area || order.address.city) && (
+                          <p>
+                            {[order.address.area, order.address.city]
+                              .filter(Boolean)
+                              .join(", ")}
+                          </p>
+                        )}
+                        {(order.address.state || order.address.pinCode) && (
+                          <p>
+                            {[order.address.state, order.address.pinCode]
+                              .filter(Boolean)
+                              .join(" - ")}
+                          </p>
+                        )}
+                        {!order.address.fullName && !order.address.phoneNumber && !order.address.area && !order.address.city && !order.address.state && !order.address.pinCode && (
+                          <p className="text-xs text-gray-500 italic">
+                            Address details incomplete
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-500 italic">
+                        No delivery address found
+                      </p>
+                    )}
                   </div>
 
                   {/* Amount & Status */}
