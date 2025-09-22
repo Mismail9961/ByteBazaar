@@ -1,3 +1,6 @@
+<img width="1647" height="680" alt="Screenshot" src="https://github.com/user-attachments/assets/e41f5c94-f1de-42da-a6a1-e31525d22c4b" />
+
+
 ByteBazaar
 
 ByteBazaar is a modern e-commerce platform built with Next.js, Inngest Webhooks, Cloudinary, and MongoDB. It offers a seamless shopping experience with dynamic product management, secure order handling, and a scalable architecture. Designed with performance and flexibility in mind, ByteBazaar provides both customers and administrators with a smooth and intuitive interface.
