@@ -24,16 +24,24 @@ const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8 text-sm font-medium">
-          {["Home", "Shop", "About Us", "Contact"].map((item, i) => (
-            <Link
-              key={i}
-              href={item === "Shop" ? "/all-products" : "/"}
-              className="relative group transition"
-            >
-              {item}
-              <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-indigo-500 transition-all duration-300 group-hover:w-full" />
-            </Link>
-          ))}
+          {["Home", "Shop", "About Us", "Contact"].map((item, i) => {
+            let href = "/";
+            if (item === "Shop") href = "/all-products";
+            if (item === "About Us") href = "/about-us";
+            if (item === "Contact") href = "/contact-us";
+
+            return (
+              <Link
+                key={i}
+                href={href}
+                className="relative group transition"
+              >
+                {item}
+                <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-indigo-500 transition-all duration-300 group-hover:w-full" />
+              </Link>
+            );
+          })}
+
 
           {isSeller && (
             <button
