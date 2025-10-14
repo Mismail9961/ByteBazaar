@@ -21,10 +21,10 @@ const OrderSummary = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [userAddresses, setUserAddresses] = useState([]);
 
+  // 🏠 Fetch user's saved addresses
   const fetchUserAddresses = async () => {
     try {
       const token = await getToken();
-
       if (!token) {
         toast.error("You must be logged in to fetch addresses");
         return;
@@ -38,9 +38,7 @@ const OrderSummary = () => {
 
       if (data.success) {
         setUserAddresses(data.addresses);
-        if (data.addresses.length > 0) {
-          setSelectedAddress(data.addresses[0]);
-        } else {
+        if (data.addresses.length === 0) {
           toast.error("No addresses found");
         }
       } else {
@@ -51,23 +49,22 @@ const OrderSummary = () => {
     }
   };
 
+  // 🧭 Handle address selection
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
     setIsDropdownOpen(false);
   };
 
+  // 🧾 Create order
   const createOrder = async () => {
     try {
-      if (!selectedAddress) {
-        return toast.error("Please select an Address");
+      if (!selectedAddress?._id) {
+        return toast.error("Please select an address before placing an order");
       }
 
-      let cartItemsArray = Object.keys(cartItems).map((key) => ({
-        product: key,
-        quantity: cartItems[key],
-      }));
-
-      cartItemsArray = cartItemsArray.filter((item) => item.quantity > 0);
+      const cartItemsArray = Object.entries(cartItems)
+        .filter(([_, quantity]) => quantity > 0)
+        .map(([product, quantity]) => ({ product, quantity }));
 
       if (cartItemsArray.length === 0) {
         return toast.error("Cart is empty");
@@ -77,6 +74,8 @@ const OrderSummary = () => {
       if (!token) {
         return toast.error("You must be logged in to place an order");
       }
+
+      console.log("📦 Creating order with address:", selectedAddress);
 
       const { data } = await axios.post(
         "/api/order/create",
@@ -97,15 +96,13 @@ const OrderSummary = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      console.error(error);
+      console.error("❌ Order creation error:", error);
       toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
   useEffect(() => {
-    if (user) {
-      fetchUserAddresses();
-    }
+    if (user) fetchUserAddresses();
   }, [user]);
 
   return (
@@ -151,9 +148,9 @@ const OrderSummary = () => {
 
             {isDropdownOpen && (
               <ul className="absolute w-full bg-white border border-[#4364EE]/40 shadow-md mt-1 z-10 py-1.5 rounded-md">
-                {userAddresses.map((address, index) => (
+                {userAddresses.map((address) => (
                   <li
-                    key={index}
+                    key={address._id}
                     className="px-4 py-2 hover:bg-[#4364EE]/10 cursor-pointer text-[#4364EE]"
                     onClick={() => handleAddressSelect(address)}
                   >
