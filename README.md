@@ -36,7 +36,7 @@ Frontend: Next.js, React, Tailwind CSS
 
 Backend: Next.js API Routes, Inngest Webhooks
 
-Database: MongoDB (Mongoose ORM)
+Database: MongoDB Atlas
 
 Media Management: Cloudinary
 
