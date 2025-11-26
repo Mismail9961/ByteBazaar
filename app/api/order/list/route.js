@@ -1,5 +1,6 @@
 import Order from "@/models/Order";
-import { getAuth } from "@clerk/nextjs/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 
@@ -7,11 +8,13 @@ export async function GET(request) {
   try {
     await connectDB();
 
-    const { userId } = getAuth(request);
-    if (!userId) {
+    const session = await getServerSession(authOptions);
+    
+    if (!session || !session.user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = session.user.id || session.user.email;
     console.log("👤 Fetching orders for userId:", userId);
 
     const orders = await Order.find({ userId })

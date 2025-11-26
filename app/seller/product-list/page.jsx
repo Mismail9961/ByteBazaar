@@ -7,25 +7,23 @@ import Footer from "@/components/seller/Footer";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { MoreVertical } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const ProductList = () => {
-  const { router, getToken } = useAppContext();
+  const { router } = useAppContext();
+  const { data: session } = useSession();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const fetchSellerProduct = async () => {
-    try {
-      const token = await getToken();
-      const { data } = await axios.get("/api/product/seller-list", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    if (!session) return; // wait for session
 
-      if (data.success) {
-        setProducts(data.products);
-      } else {
-        toast.error("Failed to load products");
-      }
+    try {
+      const { data } = await axios.get("/api/product/list");
+
+      if (data.success) setProducts(data.products);
+      else toast.error(data.message || "Failed to load products");
     } catch (error) {
       console.error("Error fetching products:", error);
       toast.error("Error fetching products");
@@ -36,7 +34,7 @@ const ProductList = () => {
 
   useEffect(() => {
     fetchSellerProduct();
-  }, []);
+  }, [session]);
 
   return (
     <div className="flex-1 min-h-screen flex flex-col justify-between bg-white">
@@ -52,13 +50,15 @@ const ProductList = () => {
             </div>
           ) : products.length === 0 ? (
             <div className="w-full py-16 text-center text-[#5C66F0]/70 flex flex-col items-center">
-              <Image
-                src={assets.empty_box}
-                alt="empty"
-                width={120}
-                height={120}
-                className="mb-4 opacity-70"
-              />
+              {assets.empty_box && (
+                <Image
+                  src={assets.empty_box}
+                  alt="empty"
+                  width={120}
+                  height={120}
+                  className="mb-4 opacity-70"
+                />
+              )}
               <p className="text-lg">No products added yet</p>
               <button
                 onClick={() => router.push("/seller/add-product")}
@@ -90,11 +90,11 @@ const ProductList = () => {
                       <td className="px-6 py-4 flex items-center space-x-4">
                         <div className="bg-[#5C66F0]/10 rounded-lg overflow-hidden shadow-sm">
                           <Image
-                            src={product.image[0]}
-                            alt="product Image"
-                            className="w-14 h-14 object-cover"
+                            src={product.image && product.image[0] ? product.image[0] : "/default-image.png"}
+                            alt={product.name || "product image"}
                             width={80}
                             height={80}
+                            className="w-14 h-14 object-cover"
                           />
                         </div>
                         <span className="font-medium text-gray-900 truncate">
@@ -112,20 +112,20 @@ const ProductList = () => {
                       {/* Price */}
                       <td className="px-6 py-4">
                         <span className="font-semibold text-gray-900">
-                          ${product.offerPrice}
+                          ${product.offerPrice || product.price}
                         </span>
-                        <span className="ml-2 text-xs line-through text-gray-400">
-                          ${product.price}
-                        </span>
+                        {product.offerPrice && (
+                          <span className="ml-2 text-xs line-through text-gray-400">
+                            ${product.price}
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
                           <button
-                            onClick={() =>
-                              router.push(`/product/${product._id}`)
-                            }
+                            onClick={() => router.push(`/product/${product._id}`)}
                             className="px-3 py-1.5 text-sm bg-[#5C66F0] text-white rounded-lg hover:bg-[#4a52c8] transition"
                           >
                             View

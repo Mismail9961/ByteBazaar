@@ -1,52 +1,51 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
-import User from "@/models/User";
 import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
+import User from "@/models/User";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(request) {
   try {
-    const { userId } = await auth()
-    
-    if (!userId) {
-      return NextResponse.json({success:false,message:"Unauthorized"})
-    }
-    
-    await connectDB()
-    let user = await User.findById(userId)
+    const session = await getServerSession(authOptions);
 
-    if(!user){
-      console.log("🔄 Fetching current user from Clerk for:", userId)
-      
-      try {
-        // Get current user directly
-        const clerkUser = await currentUser()
-        
-        if (!clerkUser) {
-          throw new Error("No current user found")
-        }
-        
-        user = new User({
-          _id: userId,
-          name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim() || "Unnamed User",
-          email: clerkUser.emailAddresses?.[0]?.emailAddress || '',
-          imageUrl: clerkUser.imageUrl || ""
-        })
-        
-        await user.save()
-        console.log("✅ Real user data created from currentUser:", userId)
-        
-      } catch (clerkError) {
-        console.error("❌ currentUser error:", clerkError.message)
-        return NextResponse.json({
-          success: false, 
-          message: `Could not get current user: ${clerkError.message}`
-        })
-      }
+    if (!session?.user?.email) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    return NextResponse.json({success:true,user})
+    await connectDB();
+
+    const user = await User.findOne({ email: session.user.email }).select(
+      "-password -resetPasswordToken -resetPasswordExpires"
+    );
+    
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "User not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        imageUrl: user.imageUrl,
+        role: user.role,
+        cartItems: user.cartItems || {},
+        emailVerified: user.emailVerified,
+        provider: user.provider,
+      },
+    });
   } catch (error) {
-    console.error("API Error:", error)
-    return NextResponse.json({success:false,message:error.message})
+    console.error("Error fetching user data:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

@@ -2,30 +2,29 @@ import { NextResponse } from "next/server";
 import connectDB from "@/config/db";
 import Product from "@/models/Product";
 
+// ✅ PUBLIC ENDPOINT - No authentication required
+// Anyone can view products (signed in or not)
 export async function GET() {
   try {
     await connectDB();
 
-    // 🔧 Ensure all old products without createdAt get a timestamp
-    await Product.updateMany(
-      { createdAt: { $exists: false } },
-      { $set: { createdAt: new Date(), updatedAt: new Date() } }
-    );
-
-    // ✅ Fetch latest 12 products
+    // Fetch all products - no user filtering
     const products = await Product.find({})
       .sort({ createdAt: -1 })
-      .limit(12);
+      .select('-__v') // Exclude version key
+      .lean();
 
-    return NextResponse.json(
-      { success: true, products },
-      { status: 200 }
-    );
+    return NextResponse.json({ 
+      success: true, 
+      products,
+      count: products.length 
+    }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching home products:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to load products" },
-      { status: 500 }
-    );
+    console.error("Error fetching products:", error);
+    return NextResponse.json({ 
+      success: false, 
+      message: "Server error",
+      products: [] // Return empty array on error
+    }, { status: 500 });
   }
 }

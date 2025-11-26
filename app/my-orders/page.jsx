@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useAppContext } from "@/context/AppContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,6 +12,8 @@ import Loading from "@/components/Loading";
 import { assets } from "@/assets/assets";
 
 const MyOrders = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { currency } = useAppContext();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,16 +28,24 @@ const MyOrders = () => {
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
+      if (error.response?.status === 401) {
+        router.push("/login");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, []);
+    if (status === "unauthenticated") {
+      router.push("/login");
+    } else if (status === "authenticated") {
+      fetchOrders();
+    }
+  }, [status, router]);
 
-  if (loading) {
+  // Show loading while checking authentication
+  if (status === "loading" || loading) {
     return (
       <>
         <Navbar />
@@ -43,6 +55,11 @@ const MyOrders = () => {
         <Footer />
       </>
     );
+  }
+
+  // Redirect if not authenticated (shouldn't reach here due to useEffect)
+  if (!session) {
+    return null;
   }
 
   if (!loading && orders.length === 0) {
