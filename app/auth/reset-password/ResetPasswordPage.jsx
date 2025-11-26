@@ -8,5 +8,3 @@ export default function Page() {
     </Suspense>
   );
 }
-
-export const dynamic = "force-dynamic";
