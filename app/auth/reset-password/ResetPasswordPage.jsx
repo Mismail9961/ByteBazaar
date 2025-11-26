@@ -1,6 +1,3 @@
-
-export const dynamic = "force-dynamic";
-
 import { Suspense } from "react";
 import ResetPasswordPage from "./ResetPasswordPage";
 
@@ -11,3 +8,5 @@ export default function Page() {
     </Suspense>
   );
 }
+
+export const dynamic = "force-dynamic";

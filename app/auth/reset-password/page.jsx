@@ -10,7 +10,7 @@ export default function ResetPasswordPage() {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
 
-  const [newPassword, setNewPassword] = useState(""); 
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -78,9 +78,7 @@ export default function ResetPasswordPage() {
         {message && (
           <p
             className={`text-center mt-3 text-sm ${
-              message.includes("success")
-                ? "text-green-600"
-                : "text-red-600"
+              message.includes("success") ? "text-green-600" : "text-red-600"
             }`}
           >
             {message}
