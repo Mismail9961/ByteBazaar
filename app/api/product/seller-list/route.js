@@ -1,36 +1,19 @@
-// app/api/seller/list/route.js
-import { getAuth } from "@clerk/nextjs/server";
-import authSeller from "@/lib/authSeller";
-import { NextResponse } from "next/server";
+// Example: app/api/user/update-role/route.js
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import connectDB from "@/config/db";
-import Product from "@/models/Product";
+import User from "@/models/User";
 
-export async function GET(request) {
-  try {
-    const { userId } = getAuth(request);
-
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const isSeller = await authSeller(userId);
-    if (!isSeller) {
-      return NextResponse.json({ error: "Not a seller" }, { status: 403 });
-    }
-
-    await connectDB();
-
-    const products = await Product.find({ userId }).sort({ createdAt: -1 });
-
-    return NextResponse.json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    console.error("Error fetching seller products:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch products" },
-      { status: 500 }
-    );
+export async function PATCH(request) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const { role } = await request.json();
+  
+  await connectDB();
+  await User.findByIdAndUpdate(session.user.id, { role });
+  
+  return NextResponse.json({ success: true });
 }
