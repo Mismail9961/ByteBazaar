@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { assets } from "@/assets/assets";
 import ProductCard from "@/components/ProductCard";
 import Navbar from "@/components/Navbar";
@@ -19,14 +19,14 @@ const Product = () => {
     const [mainImage, setMainImage] = useState(null);
     const [productData, setProductData] = useState(null);
 
-    const fetchProductData = async () => {
+    const fetchProductData = useCallback(async () => {
         const product = products.find(product => product._id === id);
         setProductData(product);
-    }
+    }, [products, id])
 
     useEffect(() => {
         fetchProductData();
-    }, [id, products.length])
+    }, [fetchProductData])
 
     return productData ? (<>
         <Navbar />
