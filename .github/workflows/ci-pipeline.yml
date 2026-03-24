@@ -1,5 +1,7 @@
 name: CI Pipeline
 
+# This workflow runs on push to main/develop and PRs to main/develop
+
 on:
   push:
     branches:
